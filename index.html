@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Медиапортфолио двух молодых педагогов — цифровые компетенции, инновации в образовании, профессиональный рост.">
-<title>Медиапортфолио Елизарьевы</title>
+<title>Цифровой вектор | Медиапортфолио</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
@@ -953,8 +953,6 @@
         <div class="hero-profile-info">
           <p>Елизарьева Ксения Олеговна</p>
           <p>Учитель биологии и химии</p>
-          <p>ГУО "Белорусскоязычная гимназия №2<br>
-            г. Борисова"</p>
         </div>
       </div>
       <div class="hero-profile-card accent-t2 card-t2">
@@ -962,11 +960,13 @@
         <div class="hero-profile-info">
           <p>Елизарьев Никита Юрьевич</p>
           <p>Учитель математики и информатики</p>
-          <p>ГУО "Белорусскоязычная гимназия №2<br>
-            г. Борисова"</p>
         </div>
       </div>
     </div>
+    <a href="#selfpres" class="cta-btn">
+      Смотреть медиапортфолио
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </a>
   </div>
 </section>
 
@@ -1051,6 +1051,7 @@
         </div>
         <div class="video-caption">
           <strong>«Мы выбрали педагогику, потому что…»</strong>
+          <p>Ксения Олеговна и Никита Юрьевич рассказывают о своём пути в педагогику, первых уроках и мечте о школе будущего.</p>
           <div style="margin-top:0.75rem;">
           </div>
         </div>
@@ -1160,7 +1161,7 @@
               <div class="tl-line"></div>
             </div>
             <div class="tl-content">
-              <div class="tl-year ty-t1">осень 2026</div>
+              <div class="tl-year ty-t1">3-й квартал 2026</div>
               <div class="tl-title">Научно-практическая конференция</div>
               <div class="tl-desc">Участие в НПК с проектной работой.</div>
             </div>
@@ -1251,6 +1252,32 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- PHOTO ALBUM -->
+<section id="photo-album">
+  <div class="container">
+    <div class="album-hero">
+      <h2 class="section-title reveal">Фотогалерея</h2>
+      <p class="section-sub reveal reveal-delay-1">Картинки подтянутся из <code>./images</code> на сервере. При необходимости можно выбрать папку локально.</p>
+    </div>
+
+    <div class="album-controls">
+      <label class="album-upload-btn">
+        Выбрать папку
+        <input id="album-folder-input" type="file" accept="image/*" multiple webkitdirectory />
+      </label>
+      <button type="button" id="album-clear" class="album-clear-btn">Очистить</button>
+    </div>
+
+    <div id="album-status" class="album-status" aria-live="polite"></div>
+    <div id="album-grid" class="album-grid" aria-label="Список изображений"></div>
+
+    <div id="album-lightbox" class="album-lightbox" hidden>
+      <button type="button" class="album-lightbox-close" id="album-close" aria-label="Закрыть">×</button>
+      <img id="album-lightbox-img" alt="Просмотр изображения">
     </div>
   </div>
 </section>
@@ -1352,12 +1379,346 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.hero-content').style.animation = 'fadeUp 0.8s ease forwards';
   });
+
+  // Photo album (auto-load from ./images on server + optional local folder picker)
+  (() => {
+    const input = document.getElementById('album-folder-input');
+    const grid = document.getElementById('album-grid');
+    const status = document.getElementById('album-status');
+    const lightbox = document.getElementById('album-lightbox');
+    const lightboxImg = document.getElementById('album-lightbox-img');
+    const closeBtn = document.getElementById('album-close');
+    const clearBtn = document.getElementById('album-clear');
+
+    if (!input || !grid || !status || !lightbox || !lightboxImg || !closeBtn || !clearBtn) return;
+
+    let albumObjectUrls = [];
+
+    const clearAlbum = () => {
+      albumObjectUrls.forEach(u => URL.revokeObjectURL(u));
+      albumObjectUrls = [];
+      grid.innerHTML = '';
+      status.textContent = '';
+      lightbox.hidden = true;
+      lightboxImg.removeAttribute('src');
+    };
+
+    const openLightbox = (url, filename) => {
+      lightboxImg.src = url;
+      lightboxImg.alt = filename || 'Фото';
+      lightbox.hidden = false;
+    };
+
+    const renderThumbItems = (items) => {
+      if (!items || items.length === 0) {
+        grid.innerHTML = '';
+        return;
+      }
+
+      const sorted = items.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const fragment = document.createDocumentFragment();
+
+      sorted.forEach(({ url, name }) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'album-thumb';
+        btn.setAttribute('aria-label', name || 'Фото');
+
+        const img = document.createElement('img');
+        img.src = url;
+        img.loading = 'lazy';
+        img.alt = name || 'Фото';
+
+        btn.appendChild(img);
+        btn.addEventListener('click', () => openLightbox(url, name));
+
+        fragment.appendChild(btn);
+      });
+
+      grid.appendChild(fragment);
+    };
+
+    input.addEventListener('change', () => {
+      clearAlbum();
+
+      const files = Array.from(input.files || []);
+      const images = files.filter(f => f.type && f.type.startsWith('image/'));
+
+      if (images.length === 0) {
+        status.textContent = 'Изображения не выбраны.';
+        return;
+      }
+
+      status.textContent = `Найдено изображений: ${images.length}`;
+
+      const items = images.map(file => {
+        const url = URL.createObjectURL(file);
+        albumObjectUrls.push(url);
+        return { url, name: file.name || 'Фото' };
+      });
+
+      renderThumbItems(items);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearAlbum();
+    });
+
+    closeBtn.addEventListener('click', () => {
+      lightbox.hidden = true;
+      lightboxImg.removeAttribute('src');
+    });
+
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        lightbox.hidden = true;
+        lightboxImg.removeAttribute('src');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !lightbox.hidden) {
+        lightbox.hidden = true;
+        lightboxImg.removeAttribute('src');
+      }
+    });
+
+    // 1) Try: ./images/manifest.json (recommended)
+    // 2) Fallback: parse auto-index HTML from ./images/
+    const imageBase = new URL('./images/', window.location.href).toString();
+    const manifestUrl = new URL('./images/manifest.json', window.location.href).toString();
+
+    const parseDirectoryListing = (html) => {
+      const re = /href\s*=\s*["']([^"'#?]+?\.(?:png|jpe?g|gif|webp|bmp|svg))["']/gi;
+      const matches = Array.from(html.matchAll(re));
+      const urls = matches
+        .map(m => {
+          const href = m[1];
+          const url = new URL(href, imageBase).toString();
+          return url;
+        })
+        .filter(Boolean);
+      const uniq = Array.from(new Set(urls));
+      return uniq.map(u => ({ url: u, name: decodeURIComponent(u.split('/').pop() || 'Фото') }));
+    };
+
+    const tryLoadFromManifest = async () => {
+      const res = await fetch(manifestUrl, { cache: 'no-store' });
+      if (!res.ok) return [];
+      const data = await res.json();
+
+      // Supports: { images: [...] } OR [...] OR { files: [...] }
+      const list = Array.isArray(data)
+        ? data
+        : (Array.isArray(data.images) ? data.images : (Array.isArray(data.files) ? data.files : []));
+
+      const items = [];
+      list.forEach(entry => {
+        if (typeof entry === 'string') {
+          const url = new URL(entry, imageBase).toString();
+          const name = decodeURIComponent(entry.split('/').pop() || 'Фото');
+          items.push({ url, name });
+          return;
+        }
+        if (entry && typeof entry === 'object') {
+          const src = entry.src || entry.url || entry.path;
+          if (!src) return;
+          const url = new URL(src, imageBase).toString();
+          const name = decodeURIComponent(entry.name || src.split('/').pop() || 'Фото');
+          items.push({ url, name });
+        }
+      });
+
+      return items;
+    };
+
+    const loadFromServerImagesFolder = async () => {
+      clearAlbum();
+      status.textContent = 'Загрузка изображений из ./images...';
+
+      // Recommended path: manifest.json
+      try {
+        const manifestItems = await tryLoadFromManifest();
+        if (manifestItems.length > 0) {
+          status.textContent = `Найдено изображений: ${manifestItems.length}`;
+          renderThumbItems(manifestItems);
+          return;
+        }
+      } catch (_) { /* ignore */ }
+
+      // Fallback: try to parse directory listing HTML
+      try {
+        const res = await fetch(imageBase, { cache: 'no-store' });
+        if (res.ok) {
+          const html = await res.text();
+          const items = parseDirectoryListing(html);
+          if (items.length > 0) {
+            status.textContent = `Найдено изображений: ${items.length}`;
+            renderThumbItems(items);
+            return;
+          }
+        }
+      } catch (_) { /* ignore */ }
+
+      status.textContent = 'Не удалось загрузить изображения. Проверьте, что доступна папка `./images/` и добавьте `./images/manifest.json` (например: { "images": ["1.jpg","2.png"] }).';
+    };
+
+    // Auto-load when the page opens
+    loadFromServerImagesFolder();
+  })();
 </script>
 
 <style>
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: none; }
+  }
+
+  /* ─── PHOTO ALBUM ─── */
+  #photo-album .album-hero {
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto 2rem;
+  }
+
+  .album-controls {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+
+  .album-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    transition: background 0.2s, border-color 0.2s;
+    user-select: none;
+  }
+
+  .album-upload-btn:hover {
+    background: var(--bg);
+    border-color: var(--c1-mid);
+  }
+
+  .album-upload-btn input {
+    display: none;
+  }
+
+  .album-clear-btn {
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .album-clear-btn:hover {
+    background: var(--bg);
+    border-color: var(--c2-mid);
+  }
+
+  .album-status {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0.5rem auto 0.75rem;
+    min-height: 1.1em;
+  }
+
+  .album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 1rem;
+  }
+
+  .album-thumb {
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.06);
+    transition: transform 0.15s ease;
+  }
+
+  .album-thumb:focus-visible {
+    outline: 3px solid rgba(59,130,246,0.35);
+    outline-offset: 2px;
+  }
+
+  .album-thumb:hover {
+    transform: translateY(-2px);
+  }
+
+  .album-thumb img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+    transform: scale(1.01);
+    transition: transform 0.2s ease;
+  }
+
+  .album-thumb:hover img {
+    transform: scale(1.05);
+  }
+
+  .album-lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1.25rem;
+  }
+
+  .album-lightbox img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: var(--radius);
+    box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+  }
+
+  .album-lightbox-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: transform 0.15s ease, background 0.2s;
+  }
+
+  .album-lightbox-close:hover {
+    background: rgba(255,255,255,0.18);
+    transform: scale(1.03);
   }
 </style>
 
