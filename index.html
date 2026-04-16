@@ -1384,12 +1384,14 @@
 
     // Ensure lightbox is hidden by default (prevents "empty image" overlay on page load)
     lightbox.hidden = true;
+    lightbox.style.display = 'none';
     lightboxImg.removeAttribute('src');
 
     const clearAlbum = () => {
       grid.innerHTML = '';
       status.textContent = '';
       lightbox.hidden = true;
+      lightbox.style.display = 'none';
       lightboxImg.removeAttribute('src');
     };
 
@@ -1398,6 +1400,7 @@
       lightboxImg.src = url;
       lightboxImg.alt = filename || 'Фото';
       lightbox.hidden = false;
+      lightbox.style.display = 'flex';
     };
 
     const renderThumbItems = (items) => {
@@ -1429,14 +1432,17 @@
       grid.appendChild(fragment);
     };
 
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       lightbox.hidden = true;
+      lightbox.style.display = 'none';
       lightboxImg.removeAttribute('src');
     });
 
     lightbox.addEventListener('click', (e) => {
       if (e.target === lightbox) {
         lightbox.hidden = true;
+        lightbox.style.display = 'none';
         lightboxImg.removeAttribute('src');
       }
     });
@@ -1444,6 +1450,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !lightbox.hidden) {
         lightbox.hidden = true;
+        lightbox.style.display = 'none';
         lightboxImg.removeAttribute('src');
       }
     });
@@ -1655,6 +1662,11 @@
     justify-content: center;
     z-index: 2000;
     padding: 1.25rem;
+  }
+
+  /* Make sure [hidden] always wins over our display:flex rule */
+  .album-lightbox[hidden] {
+    display: none !important;
   }
 
   .album-lightbox img {
