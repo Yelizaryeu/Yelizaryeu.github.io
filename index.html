@@ -1382,6 +1382,10 @@
 
     if (!grid || !status || !lightbox || !lightboxImg || !closeBtn) return;
 
+    // Ensure lightbox is hidden by default (prevents "empty image" overlay on page load)
+    lightbox.hidden = true;
+    lightboxImg.removeAttribute('src');
+
     const clearAlbum = () => {
       grid.innerHTML = '';
       status.textContent = '';
@@ -1390,6 +1394,7 @@
     };
 
     const openLightbox = (url, filename) => {
+      if (!url) return;
       lightboxImg.src = url;
       lightboxImg.alt = filename || 'Фото';
       lightbox.hidden = false;
@@ -1500,8 +1505,8 @@
       try {
         const manifestItems = await tryLoadFromManifest();
         if (manifestItems.length > 0) {
-          status.textContent = `Найдено изображений: ${manifestItems.length}`;
           renderThumbItems(manifestItems);
+          status.textContent = '';
           return;
         }
       } catch (_) { /* ignore */ }
@@ -1513,8 +1518,8 @@
           const html = await res.text();
           const items = parseDirectoryListing(html);
           if (items.length > 0) {
-            status.textContent = `Найдено изображений: ${items.length}`;
             renderThumbItems(items);
+            status.textContent = '';
             return;
           }
         }
@@ -1657,12 +1662,14 @@
     max-height: 85vh;
     border-radius: var(--radius);
     box-shadow: 0 18px 55px rgba(0,0,0,0.35);
+    pointer-events: none; /* clicks always go to controls */
   }
 
   .album-lightbox-close {
     position: absolute;
     top: 16px;
     right: 16px;
+    z-index: 2010; /* always above the image */
     width: 44px;
     height: 44px;
     border-radius: 999px;
