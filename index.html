@@ -344,6 +344,7 @@
   .teacher-avatar-lg {
     width: 80px; height: 80px;
     border-radius: 50%;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -352,6 +353,13 @@
     font-size: 1.6rem;
     color: #fff;
     margin-bottom: 1.5rem;
+  }
+
+  .teacher-avatar-lg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .teacher-name {
@@ -988,7 +996,9 @@
     <div class="dual-grid">
       <!-- TEACHER 1 -->
       <div class="teacher-card card-t1 accent-t1 reveal">
-        <div class="teacher-avatar-lg avatar-t1">КО</div>
+        <div class="teacher-avatar-lg avatar-t1">
+          <img src="./images/avatar1" alt="Елизарьева Ксения Олеговна">
+        </div>
         <h3 class="teacher-name">Елизарьева Ксения Олеговна</h3>
         <p class="teacher-role">Учитель биологии и химии</p>
         <p class="teacher-bio">
@@ -1008,7 +1018,9 @@
 
       <!-- TEACHER 2 -->
       <div class="teacher-card card-t2 accent-t2 reveal reveal-delay-2">
-        <div class="teacher-avatar-lg avatar-t2">НЮ</div>
+        <div class="teacher-avatar-lg avatar-t2">
+          <img src="./images/avatar2" alt="Елизарьев Никита Юрьевич">
+        </div>
         <h3 class="teacher-name">Елизарьев Никита Юрьевич</h3>
         <p class="teacher-role">Учитель математики и информатики</p>
         <p class="teacher-bio">
