@@ -997,7 +997,7 @@
       <!-- TEACHER 1 -->
       <div class="teacher-card card-t1 accent-t1 reveal">
         <div class="teacher-avatar-lg avatar-t1">
-          <img src="./images/avatar1" alt="Елизарьева Ксения Олеговна">
+          <img id="teacher-avatar-1" alt="Елизарьева Ксения Олеговна">
         </div>
         <h3 class="teacher-name">Елизарьева Ксения Олеговна</h3>
         <p class="teacher-role">Учитель биологии и химии</p>
@@ -1019,7 +1019,7 @@
       <!-- TEACHER 2 -->
       <div class="teacher-card card-t2 accent-t2 reveal reveal-delay-2">
         <div class="teacher-avatar-lg avatar-t2">
-          <img src="./images/avatar2" alt="Елизарьев Никита Юрьевич">
+          <img id="teacher-avatar-2" alt="Елизарьев Никита Юрьевич">
         </div>
         <h3 class="teacher-name">Елизарьев Никита Юрьевич</h3>
         <p class="teacher-role">Учитель математики и информатики</p>
@@ -1391,6 +1391,8 @@
     const lightbox = document.getElementById('album-lightbox');
     const lightboxImg = document.getElementById('album-lightbox-img');
     const closeBtn = document.getElementById('album-close');
+    const teacherAvatar1 = document.getElementById('teacher-avatar-1');
+    const teacherAvatar2 = document.getElementById('teacher-avatar-2');
 
     if (!grid || !status || !lightbox || !lightboxImg || !closeBtn) return;
 
@@ -1442,6 +1444,27 @@
       });
 
       grid.appendChild(fragment);
+    };
+
+    const applyTeacherAvatars = (items) => {
+      if (!items || items.length === 0) return;
+
+      const normalize = (value) => (value || '').toLowerCase().trim();
+      const findAvatarUrl = (targetBaseName) => {
+        const target = normalize(targetBaseName);
+        const found = items.find(({ url, name }) => {
+          const fileNameFromName = normalize(name).replace(/\.[^.]+$/, '');
+          const fileNameFromUrl = normalize((url || '').split('/').pop()).replace(/\?.*$/, '').replace(/\.[^.]+$/, '');
+          return fileNameFromName === target || fileNameFromUrl === target;
+        });
+        return found ? found.url : '';
+      };
+
+      const avatar1Url = findAvatarUrl('avatar1');
+      const avatar2Url = findAvatarUrl('avatar2');
+
+      if (teacherAvatar1 && avatar1Url) teacherAvatar1.src = avatar1Url;
+      if (teacherAvatar2 && avatar2Url) teacherAvatar2.src = avatar2Url;
     };
 
     closeBtn.addEventListener('click', (e) => {
@@ -1525,6 +1548,7 @@
         const manifestItems = await tryLoadFromManifest();
         if (manifestItems.length > 0) {
           renderThumbItems(manifestItems);
+          applyTeacherAvatars(manifestItems);
           status.textContent = '';
           return;
         }
@@ -1538,6 +1562,7 @@
           const items = parseDirectoryListing(html);
           if (items.length > 0) {
             renderThumbItems(items);
+            applyTeacherAvatars(items);
             status.textContent = '';
             return;
           }
